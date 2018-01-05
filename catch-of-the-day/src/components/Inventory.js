@@ -1,11 +1,16 @@
 import React from 'react';
+import AddFishForm from './AddFishForm';
 
-class Invetory extends React.Component {
+class Inventory extends React.Component {
 	render() {
 		return (
-			<p>Invetory</p>
+			<div>
+				<h2>Inventory</h2>
+				<AddFishForm addFish={this.props.addFish}/>
+				<button onClick={this.props.loadSamples}>Load Sample Fishes</button>
+			</div>
 		)
 	}
 }
 
-export default Invetory;
+export default Inventory;
