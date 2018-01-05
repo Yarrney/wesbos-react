@@ -13,6 +13,7 @@ class App extends React.Component {
 		// bind this to other methods
 		this.addFish = this.addFish.bind(this);
 		this.loadSamples = this.loadSamples.bind(this);
+		this.addToOrder = this.addToOrder.bind(this);
 
 		// getinitialState
 		this.state = {
@@ -28,7 +29,7 @@ class App extends React.Component {
 		const timestamp = Date.now();
 		fishes[`fish-${timestamp}`] = fish;
 		// set state
-		this.setState({ fishes }) // same as fishes: fishes
+		this.setState({ fishes }); // same as fishes: fishes
 	}
 
 	loadSamples() {
@@ -37,17 +38,30 @@ class App extends React.Component {
 		});
 	}
 
+	addToOrder(key){
+		//copy state
+		const order = {...this.state.order}
+		//update new state
+		order[key] = order[key] + 1 || 1;
+		// set state
+		this.setState({ order });
+	}
+
 	render() {
 		return (
 			<div className="catch-of-the-day">
 				<div className="menu">
 					<Header tagline="Fresh Seafood market" />
 					<ul className="list-of-fishes">
-						<Fish />
+						{
+							Object // create array keys
+								.keys(this.state.fishes)
+								.map(key => <Fish key={key} index={key} details={this.state.fishes[key]} addToOrder={this.addToOrder} />) //loop over array of keys
+						}
 					</ul>
 				</div>
-				<Order />
-				<Inventory addFish={this.addFish} loadSamples={this.loadSamples}/>
+				<Order fishes={this.state.fishes} order={this.state.order} />
+				<Inventory addFish={this.addFish} loadSamples={this.loadSamples} />
 			</div>
 		)
 	}
