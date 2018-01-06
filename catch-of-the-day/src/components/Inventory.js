@@ -9,6 +9,11 @@ class Inventory extends React.Component {
 		// bind this to other methods
 		this.renderInventory = this.renderInventory.bind(this);
 		this.handleChange = this.handleChange.bind(this);
+		this.renderLogin = this.renderLogin.bind(this);
+		this.state = {
+			uid: null,
+			owner: null
+		}
 	}
 
 	handleChange(e, key) {
@@ -19,6 +24,18 @@ class Inventory extends React.Component {
 			[e.target.name]: e.target.value //overwrite what has been changed
 		}
 		this.props.updateFish(key, updatedFish); //pass this value up to updateFish
+	}
+
+	renderLogin() {
+		return (
+			<nav className="login">
+				<h2>Inventory</h2>
+				<p>Sign in to manage your store's inventory</p>
+				<button className="facebook" onClick={() => this.authenticate('facebook')}>Login with Facebook</button>				
+				<button className="github" onClick={() => this.authenticate('github')}>Login with GitHub</button>
+				<button className="twitter" onClick={() => this.authenticate('twitter')}>Login with Twitter</button>
+			</nav>
+		)
 	}
 
 	renderInventory(key) {
@@ -38,9 +55,27 @@ class Inventory extends React.Component {
 		)
 	}
 	render() {
+		const logout = <button>Log Out!</button>
+		
+		// checked if they are not logged in
+		if(!this.state.uid) {
+			return <div>{this.renderLogin()}</div>
+		}
+
+		// Check if they are the owner of the store
+		if(this.state.uid !== this.state.owner) {
+			return (
+				<div>
+					<p>Sorry you aren't the owner of the store!</p>
+					{ logout }
+				</div>
+			)
+		}
+
 		return (
 			<div>
 				<h2>Inventory</h2>
+				{ logout }
 				{Object.keys(this.props.fishes).map(this.renderInventory)}
 				<AddFishForm addFish={this.props.addFish}/>
 				<button onClick={this.props.loadSamples}>Load Sample Fishes</button>
