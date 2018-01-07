@@ -1,6 +1,7 @@
 import React from 'react';
 import AddFishForm from './AddFishForm';
 import { formatPrice } from '../helpers';
+import base from '../base';
 
 class Inventory extends React.Component {
 	constructor() {
@@ -9,11 +10,22 @@ class Inventory extends React.Component {
 		// bind this to other methods
 		this.renderInventory = this.renderInventory.bind(this);
 		this.handleChange = this.handleChange.bind(this);
-		this.renderLogin = this.renderLogin.bind(this);
+		this.renderLogin = this.renderLogin.bind(this);		
+		this.authenticate = this.authenticate.bind(this);
+		this.authHandler = this.authHandler.bind(this);
+		this.logout = this.logout.bind(this);
 		this.state = {
 			uid: null,
 			owner: null
 		}
+	}
+
+	componentDidMount() {
+		base.onAuth((user) => {
+			if(user) {
+				this.authHandler(null, {user});
+			}
+		})
 	}
 
 	handleChange(e, key) {
@@ -24,6 +36,45 @@ class Inventory extends React.Component {
 			[e.target.name]: e.target.value //overwrite what has been changed
 		}
 		this.props.updateFish(key, updatedFish); //pass this value up to updateFish
+	}
+
+	authenticate(provider) {
+		console.log(`Trying to log in with ${provider}`);
+		base.authWithOAuthPopup(provider, this.authHandler);
+	}
+
+	logout() {
+		base.unauth();
+		this.setState({ uid: null })
+	}
+
+	authHandler(err, authData) {
+		if (err) {
+			console.error(err);
+			return;
+		}
+
+		//grab store info
+		const storeRef = base.database().ref(this.props.storeId);
+
+		//query firebase for store data
+		storeRef.once('value', (snapshot) => {
+			const data = snapshot.val() || {};
+
+			// claim as own
+			if(!data.owner) {
+				storeRef.set({
+					owner: authData.user.uid
+				});
+			}
+
+			this.setState({
+				uid: authData.user.uid,
+				owner: data.owner || authData.user.uid
+			})
+
+		});
+
 	}
 
 	renderLogin() {
@@ -54,8 +105,9 @@ class Inventory extends React.Component {
 			</div>
 		)
 	}
+
 	render() {
-		const logout = <button>Log Out!</button>
+		const logout = <button onClick={(e) => this.logout(e)}>Log Out!</button>
 		
 		// checked if they are not logged in
 		if(!this.state.uid) {
@@ -89,7 +141,8 @@ Inventory.propTypes = {
 	updateFish: React.PropTypes.func.isRequired,
 	addFish: React.PropTypes.func.isRequired,
 	removeFish: React.PropTypes.func.isRequired,
-	loadSamples: React.PropTypes.func.isRequired
+	loadSamples: React.PropTypes.func.isRequired,
+	storeId: React.PropTypes.string.isRequired
 }
 
 export default Inventory;
